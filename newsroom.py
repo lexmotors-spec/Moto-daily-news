@@ -302,6 +302,7 @@ category — строго одно из: Мотоновости; Экипиро�
                 'published':a['date'].isoformat(), 'article':body}, ensure_ascii=False)}])
     req = urllib.request.Request('https://api.groq.com/openai/v1/chat/completions',
         data=json.dumps(payload).encode(), headers={'Content-Type':'application/json',
+            'Accept':'application/json', 'User-Agent':'MotoNewsBot/2.1',
             'Authorization':'Bearer '+api_key})
     try:
         with urllib.request.urlopen(req, timeout=45) as r:
