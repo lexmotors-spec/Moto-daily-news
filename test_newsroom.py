@@ -4,6 +4,7 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 import newsroom
+from urllib.error import HTTPError
 
 class NewsroomTests(unittest.TestCase):
     def setUp(self):
@@ -67,6 +68,25 @@ class NewsroomTests(unittest.TestCase):
 
     def response(self, result, finish='stop'):
         return io.BytesIO(json.dumps({'choices':[{'finish_reason':finish,'message':{'content':json.dumps(result)}}]}).encode())
+
+    @patch.dict('os.environ', {'GROQ_API_KEY':'gsk_testsecret'})
+    def test_provider_http_diagnostic_redacts_key(self):
+        error=HTTPError('https://api.groq.com',401,'Unauthorized',{},io.BytesIO(b'{"error":{"message":"Bad key gsk_testsecret"}}'))
+        with patch.object(newsroom,'download',return_value=b'html'),patch.object(newsroom,'article_text',return_value='Article'),patch('urllib.request.urlopen',side_effect=error):
+            with self.assertRaises(newsroom.PreparationError) as caught:
+                newsroom.summarize(self.article)
+        self.assertIn('Groq HTTP 401',str(caught.exception))
+        self.assertNotIn('gsk_testsecret',str(caught.exception))
+        self.assertTrue(caught.exception.provider_failure)
+
+    @patch.dict('os.environ', {'GROQ_API_KEY':'test-key'})
+    def test_article_error_distinguished_from_provider(self):
+        error=HTTPError('https://example.org',403,'Forbidden',{},None)
+        with patch.object(newsroom,'download',side_effect=error):
+            with self.assertRaises(newsroom.PreparationError) as caught:
+                newsroom.summarize(self.article)
+        self.assertIn('Чтение статьи: HTTP 403',str(caught.exception))
+        self.assertFalse(caught.exception.provider_failure)
 
     @patch.dict('os.environ', {'GROQ_API_KEY':'test-key'})
     def test_summary_uses_article_and_checks_russian(self):

@@ -114,7 +114,10 @@ def run_once(db, now, preview=False, persist=None):
             LOG.info('Материал пропущен редакционным фильтром: %s', candidate['source'])
         except Exception as exc:
             errors += 1
-            LOG.warning('Не удалось подготовить пересказ: %s (%s)', candidate['source'], type(exc).__name__)
+            diagnostic = getattr(exc, 'safe_diagnostic', type(exc).__name__)
+            LOG.warning('Не удалось подготовить пересказ: %s (%s)', candidate['source'], diagnostic)
+            if getattr(exc, 'provider_failure', False):
+                break
     if a is None:
         if errors:
             raise RuntimeError('Пересказ не подготовлен. Проверьте GROQ_API_KEY, доступность API и источников.')
