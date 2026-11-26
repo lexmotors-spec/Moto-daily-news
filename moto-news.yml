@@ -1,0 +1,44 @@
+name: Moto daily news
+
+on:
+  schedule:
+    - cron: '0 7 * * *' # 10:00 Moscow (UTC+3); execution may be delayed.
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'preview = no message; send = publish now; status = history'
+        type: choice
+        options: [preview, send, status]
+        default: preview
+
+permissions:
+  contents: write
+
+concurrency:
+  group: moto-news-single-chat
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Manual runs on other branches must not use a separate publication history.
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run tests
+        run: python -m unittest -v
+      - name: Find and publish one item
+        env:
+          BOT_MODE: ${{ github.event_name == 'schedule' && 'send' || inputs.mode }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STATE_BRANCH: ${{ github.event.repository.default_branch }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TZ: Europe/Moscow
+        run: python github_run.py
