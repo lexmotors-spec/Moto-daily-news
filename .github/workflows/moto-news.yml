@@ -2,7 +2,7 @@ name: Moto daily news
 
 on:
   schedule:
-    - cron: '0 7 * * *' # 10:00 Moscow (UTC+3); execution may be delayed.
+    - cron: '5 9 * * *' # 12:05 Moscow (UTC+3); execution may be delayed.
   workflow_dispatch:
     inputs:
       mode:
