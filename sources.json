@@ -1,0 +1,132 @@
+{
+  "sources": [
+    {
+      "name": "MotoTeamRussia",
+      "type": "article_cards",
+      "url": "https://mototeamrussia.com/news",
+      "domains": [
+        "mototeamrussia.com",
+        "www.mototeamrussia.com"
+      ],
+      "category": "Мотоновости",
+      "path_prefix": "/news/",
+      "enabled": true
+    },
+    {
+      "name": "Журнал МОТО",
+      "type": "article_cards",
+      "url": "https://moto-magazine.ru/news/",
+      "domains": [
+        "moto-magazine.ru",
+        "www.moto-magazine.ru"
+      ],
+      "category": "Мотоновости",
+      "path_prefix": "/news/",
+      "enabled": true
+    },
+    {
+      "name": "МОТОГОНКИ.РУ — мотоиндустрия",
+      "type": "motogonki_listing",
+      "url": "https://motogonki.ru/motonews/",
+      "domains": [
+        "motogonki.ru",
+        "www.motogonki.ru"
+      ],
+      "category": "Мотоновости",
+      "path_prefix": "/motonews/",
+      "enabled": true
+    },
+    {
+      "name": "Bennetts BikeSocial",
+      "type": "metadata_listing",
+      "url": "https://www.bennetts.co.uk/bikesocial",
+      "domains": [
+        "www.bennetts.co.uk",
+        "bennetts.co.uk"
+      ],
+      "category": "Мотогаджеты",
+      "enabled": true,
+      "article_pattern": "/bikesocial/(reviews/[^/]+/.+|news-and-views/news/\\d{4}/.+)"
+    },
+    {
+      "name": "Rider Magazine",
+      "type": "rss",
+      "url": "https://ridermagazine.com/feed/",
+      "domains": [
+        "ridermagazine.com",
+        "www.ridermagazine.com"
+      ],
+      "category": "Мотопутешествия",
+      "enabled": true
+    },
+    {
+      "name": "ADV Pulse",
+      "type": "rss",
+      "url": "https://www.advpulse.com/feed/",
+      "domains": [
+        "www.advpulse.com",
+        "advpulse.com"
+      ],
+      "category": "Мотопутешествия",
+      "enabled": true
+    },
+    {
+      "name": "Adventure Bike Rider",
+      "type": "rss",
+      "url": "https://www.adventurebikerider.com/feed/",
+      "domains": [
+        "www.adventurebikerider.com",
+        "adventurebikerider.com"
+      ],
+      "category": "Экипировка",
+      "enabled": true
+    },
+    {
+      "name": "Cycle News",
+      "type": "metadata_listing",
+      "url": "https://www.cyclenews.com/",
+      "domains": [
+        "www.cyclenews.com",
+        "cyclenews.com"
+      ],
+      "category": "Мировые мотособытия",
+      "enabled": true,
+      "article_pattern": "^/\\d{4}/\\d{2}/article/[^/]+/?$"
+    },
+    {
+      "name": "MotoGP — официальный сайт",
+      "type": "dated_listing",
+      "url": "https://www.motogp.com/en/news/",
+      "domains": [
+        "www.motogp.com",
+        "motogp.com"
+      ],
+      "category": "Мировые мотособытия",
+      "enabled": true,
+      "article_pattern": "^/en/news/(20\\d\\d)/(\\d{2})/(\\d{2})/[^/]+/\\d+/?$"
+    },
+    {
+      "name": "WorldSBK — официальный сайт",
+      "type": "dated_listing",
+      "url": "https://www.worldsbk.com/en/news",
+      "domains": [
+        "www.worldsbk.com",
+        "worldsbk.com"
+      ],
+      "category": "Мировые мотособытия",
+      "enabled": true,
+      "article_pattern": "^/en/news/(20\\d\\d)/(\\d{2})/(\\d{2})/[^/]+/\\d+/?$"
+    },
+    {
+      "name": "Autosport — MotoGP",
+      "type": "rss",
+      "url": "https://www.autosport.com/rss/motogp/news/",
+      "domains": [
+        "www.autosport.com",
+        "autosport.com"
+      ],
+      "category": "Мировые мотособытия",
+      "enabled": true
+    }
+  ]
+}

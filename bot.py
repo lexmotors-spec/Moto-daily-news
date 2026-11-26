@@ -1,4 +1,4 @@
-"""Daily motorcycle news bot. Python 3.11+, standard library only."""
+"""Daily motorcycle news bot. Python 3.11+, curated sources and summaries."""
 import argparse
 import hashlib
 import html
@@ -18,9 +18,11 @@ import xml.etree.ElementTree as ET
 
 LOG = logging.getLogger('moto')
 QUERIES = [
-    ('Мотоновости', 'мотоциклы новинка премьера when:2d'),
-    ('Законодательство РФ', 'мотоциклы закон ПДД Россия when:2d'),
-    ('Мировые мотособытия', 'MotoGP WorldSBK Дакар мотогонки when:2d'),
+    ('Мотоновости', ''),
+    ('Экипировка', ''),
+    ('Мотопутешествия', ''),
+    ('Мотогаджеты', ''),
+    ('Мировые мотособытия', ''),
 ]
 
 def load_env():
@@ -65,22 +67,21 @@ def parse_feed(raw, category, now):
     return articles
 
 def collect(now):
-    result = []
-    for category, query in QUERIES:
-        url = 'https://news.google.com/rss/search?' + urlencode(dict(q=query, hl='ru', gl='RU', ceid='RU:ru'))
-        try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'MotoNewsBot/1.0'}), timeout=25) as r:
-                result.extend(parse_feed(r.read(2_000_000), category, now))
-        except Exception:
-            LOG.warning('Не удалось получить ленту: %s', category)
-    return result
+    from newsroom import collect as curated_collect
+    return [dict(a, key=key(a['title'])) for a in curated_collect(now)]
+
+def prepare_article(a):
+    from newsroom import summarize
+    return summarize(a)
 
 def message(a):
     esc = html.escape
     text = f'🏍 <b>{esc(a["category"])}</b>\n\n<b>{esc(a["title"])}</b>\n\n'
+    text += esc(a['summary']) + '\n\n'
     if a['category'] == 'Законодательство РФ':
         text += 'Сообщение СМИ. Статус и дату вступления нормы нужно проверить по официальному документу.\n\n'
-    return text + f'Источник: {esc(a["source"])}\nОпубликовано: {a["date"]:%d.%m.%Y %H:%M} UTC\n<a href="{esc(a["link"], quote=True)}">Читать новость</a>'
+    published = a['date'].strftime('%d.%m.%Y') if a.get('date_only') else a['date'].strftime('%d.%m.%Y %H:%M %Z')
+    return text + f'Источник: {esc(a["source"])}\nОпубликовано: {published}\n<a href="{esc(a["link"], quote=True)}">Читать оригинал</a>'
 
 def run_once(db, now, preview=False, persist=None):
     day = now.astimezone(ZoneInfo(os.getenv('TZ', 'Europe/Moscow'))).date().isoformat()
@@ -93,7 +94,32 @@ def run_once(db, now, preview=False, persist=None):
         return
     # Rotate topics by calendar day, preferring the newest item in that topic.
     category = QUERIES[now.toordinal() % len(QUERIES)][0]
-    a = max(candidates, key=lambda a: (a['category'] == category, a['date']))
+    ranked = sorted(candidates, key=lambda a: (a['category'] == category, a['date']), reverse=True)
+    # Give different publishers a chance before trying several articles from
+    # a single fast-moving sports feed.
+    first, rest, publishers = [], [], set()
+    for candidate in ranked:
+        if candidate['source'] in publishers:
+            rest.append(candidate)
+        else:
+            first.append(candidate)
+            publishers.add(candidate['source'])
+    ranked = first + rest
+    a, errors = None, 0
+    for candidate in ranked[:4]:
+        try:
+            a = prepare_article(candidate)
+            if a:
+                break
+            LOG.info('Материал пропущен редакционным фильтром: %s', candidate['source'])
+        except Exception as exc:
+            errors += 1
+            LOG.warning('Не удалось подготовить пересказ: %s (%s)', candidate['source'], type(exc).__name__)
+    if a is None:
+        if errors:
+            raise RuntimeError('Пересказ не подготовлен. Проверьте GROQ_API_KEY, доступность API и источников.')
+        LOG.info('Подходящих материалов для пересказа нет')
+        return
     if preview:
         print(message(a))
         return

@@ -63,6 +63,9 @@ def main():
         for name in ('TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID'):
             if not os.getenv(name):
                 raise ValueError('Missing ' + name)
+    if mode in ('send', 'preview') and not os.getenv('GROQ_API_KEY'):
+        logging.error('Добавьте секрет GROQ_API_KEY для русского пересказа')
+        raise ValueError('Missing GROQ_API_KEY')
     with sqlite3.connect(':memory:') as db:
         db.execute('CREATE TABLE days(day TEXT PRIMARY KEY,status TEXT,key TEXT)')
         db.execute('CREATE TABLE articles(key TEXT PRIMARY KEY)')
